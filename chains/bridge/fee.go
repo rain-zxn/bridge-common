@@ -23,9 +23,10 @@ type CheckFeeStatus int
 
 const (
 	SKIP     CheckFeeStatus = -2 // Skip since not our tx
-	NOT_PAID CheckFeeStatus = -1 // Not paid or paid too low
-	MISSING  CheckFeeStatus = 0  // Tx not received yet
-	PAID     CheckFeeStatus = 1  // Paid and enough pass
+	ONLYPAID CheckFeeStatus = -1 // Paid too low
+	MISSING  CheckFeeStatus = 0  // Tx not received yet or Not paid
+	FULLPAID CheckFeeStatus = 1  // Paid and enough pass
+	FREE     CheckFeeStatus = 2  // Force paid tx
 )
 
 type CheckFeeRequest struct {
@@ -34,11 +35,20 @@ type CheckFeeRequest struct {
 	PolyHash string
 	Paid     float64
 	Min      float64
+	PaidGas  float64
 	Status   CheckFeeStatus
 }
 
+func (r *CheckFeeRequest) ForceFree() bool {
+	return r != nil && r.Status == FREE
+}
+
 func (r *CheckFeeRequest) Pass() bool {
-	return r != nil && r.Status == PAID
+	return r != nil && r.Status == FULLPAID
+}
+
+func (r *CheckFeeRequest) OnlyPaid() bool {
+	return r != nil && r.Status == ONLYPAID
 }
 
 func (r *CheckFeeRequest) Skip() bool {
